@@ -307,6 +307,21 @@ func createFrames(frames []runtime.Frame) []Frame {
 		}
 	}
 
+	// Walk backwards through the results and for the current function name
+	// remove it's parent function's prefix, leaving only it's actual name. This
+	// fixes issues grouping errors with the new fully qualified function names
+	// introduced from Go 1.21.
+	for i := len(result) - 1; i > 0; i-- {
+		name := result[i].Function
+		parentName := result[i-1].Function + "."
+
+		if !strings.HasPrefix(name, parentName) {
+			continue
+		}
+
+		result[i].Function = name[len(parentName):]
+	}
+
 	return result
 }
 
